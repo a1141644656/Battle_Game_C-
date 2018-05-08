@@ -26,18 +26,12 @@ namespace Battle
     class Role
     {
         public int hp;
-        public int attack;
         public List<Skill> skills = new List<Skill>();
-        Random random = new Random();
+        protected Random random = new Random();
 
-        public Role()
-        {
-        }
-
-        public Role(int _hp, int _attack)
+        public Role(int _hp)
         {
             hp = _hp;
-            attack = _attack;
         }
 
         public void BeHit(int cost_hp)
@@ -46,22 +40,30 @@ namespace Battle
             if (hp < 0) { hp = 0; }
         }
 
-        public Skill RandomSkill()
+        virtual public Skill SelectSkill()
         {
-            return skills[random.Next(0, skills.Count)];
+            return null;
+        }
+    }
+
+    class Player : Role
+    {
+        public Player(int _hp) : base(_hp)
+        {
         }
 
-        public Skill ChooseSkill()
+        public override Skill SelectSkill()
         {
             bool success = false;
             int n = -1;
 
             while (!success)
             {
-                Console.WriteLine("请选择技能 {0}~{1}", 1, skills.Count);
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.WriteLine("Please select a skill {0}~{1}", 1, skills.Count);
                 string input = Console.ReadLine();
                 success = int.TryParse(input, out n);
-                if (n <= 0 || n >= skills.Count)
+                if (n <= 0 || n > skills.Count)
                 {
                     success = false;
                 }
@@ -71,24 +73,47 @@ namespace Battle
         }
     }
 
+    class Monster : Role
+    {
+        public Monster(int _hp) : base(_hp)
+        { 
+        }
+
+        public override Skill SelectSkill()
+        {
+            return skills[random.Next(0, skills.Count)];
+        }
+    }
+
     class Program
     {
         static void Main(string[] args)
         {
-            Role player = new Role(50, 10);
-            Role monster = new Role(100, 5);
+            Player player = new Player(100);
+            player.skills.Add(new Skill(1, 5));
+            player.skills.Add(new Skill(1, 6));
+            player.skills.Add(new Skill(1, 7));
 
-            while(true)
+            Monster monster = new Monster(100);
+            monster.skills.Add(new Skill(1, 1));
+            monster.skills.Add(new Skill(1, 12));
+
+            Skill skill;
+            while (true)
             {
-                monster.BeHit(player.RandomSkill().damage);
-                Console.WriteLine("怪物被攻击，失去{0}点生命，目前生命：{1}", player.attack, monster.hp);
+                skill = player.SelectSkill();
+                monster.BeHit(skill.damage);
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("怪物被攻击，失去{0}点生命，目前生命：{1}", skill.damage, monster.hp);
                 if(monster.hp <= 0)
                 {
                     break;
                 }
 
-                player.BeHit(monster.attack);
-                Console.WriteLine("玩家被攻击，失去{0}点生命，目前生命：{1}", monster.attack, player.hp);
+                skill = monster.SelectSkill();
+                player.BeHit(skill.damage);
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("玩家被攻击，失去{0}点生命，目前生命：{1}", skill.damage, player.hp);
                 if(player.hp <= 0)
                 {
                     break;
