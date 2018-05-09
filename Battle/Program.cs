@@ -8,8 +8,21 @@ namespace Battle
 {
     class Skill
     {
-        public int damage { get; private set; }
         int skillType = 1;
+        int multiply = 1;
+        int _damage = 0;
+        public int damage
+        {
+            get 
+            {
+                return _damage * multiply;
+            }
+            private set 
+            {
+                _damage = value;
+            }
+        }
+        
 
         public Skill(int skillType, int damage)
         {
@@ -21,23 +34,40 @@ namespace Battle
         {
             return damage;
         }
+
+        public void SetDamageMutiply(int multi)
+        {
+            multiply = multi;
+        }
     }
 
     class Role
     {
         public int hp;
+        protected int maxHp;
         public List<Skill> skills = new List<Skill>();
         protected Random random = new Random();
 
         public Role(int _hp)
         {
             hp = _hp;
+            maxHp = _hp;
         }
 
         public void BeHit(int cost_hp)
         {
             hp -= cost_hp;
             if (hp < 0) { hp = 0; }
+
+            if(hp * 1.0f / maxHp < 0.5f)
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("愤怒！攻击力增加三倍");
+                foreach(var skill in skills)
+                {
+                    skill.SetDamageMutiply(3);
+                }
+            }
         }
 
         virtual public Skill SelectSkill()
@@ -77,6 +107,7 @@ namespace Battle
     {
         public Monster(int _hp) : base(_hp)
         { 
+
         }
 
         public override Skill SelectSkill()
@@ -133,3 +164,7 @@ namespace Battle
         }
     }
 }
+
+
+
+
